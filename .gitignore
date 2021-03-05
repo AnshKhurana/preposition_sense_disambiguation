@@ -1,2 +1,8 @@
+*/.DS_Store
 .DS_Store
 .DS_Store/**
+.ipynb_checkpoints/
+glove.6B.zip
+test_out.zip
+
+

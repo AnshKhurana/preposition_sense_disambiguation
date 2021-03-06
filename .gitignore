@@ -4,5 +4,6 @@
 .ipynb_checkpoints/
 glove.6B.zip
 test_out.zip
-
-
+glove.*
+.vscode/
+__pycache__/

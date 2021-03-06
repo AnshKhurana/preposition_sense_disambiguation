@@ -108,7 +108,7 @@ def prep_feats(file_path,window_size):
     ready_data   = []
     tagged_data  = []
     prep, corpus_sentences = parse_XML(file_path)
-    print("#Sentences in corpus", len(corpus_sentences))
+    # print("#Sentences in corpus", len(corpus_sentences))
     oov_count = 0
     for sent in corpus_sentences:
         processed_sent = []
@@ -142,18 +142,22 @@ def prep_feats(file_path,window_size):
             vl = np.stack([w['vector'] for w in sent[max(0 , indx-window_size):indx]], axis = -1)
         except:
             vl = np.empty((glove_dim, window_size))
-        vr = np.stack([w['vector'] for w in sent[indx:min(len(sent), indx+window_size)]], axis = -1) 
+        try:
+            vr = np.stack([w['vector'] for w in sent[indx:min(len(sent), indx+window_size)]], axis = -1) 
+        except:
+            vr = np.empty((glove_dim, window_size))
         
         V_matrix = np.concatenate((vl,vr),axis=1)
         new_sent["vl"]= np.mean(vl,axis=1)
         new_sent["vr"]= np.mean(vr,axis=1)
         pca = PCA(n_components=1)
         principalComponents = pca.fit_transform(V_matrix)
-        new_sent["vi"]= principalComponents[:, 0] #todo add code to get primary pca
+        new_sent["vi"]= principalComponents[:, 0]
+        new_sent['sentence'] = " ".join([w['word'] for w in sent])
         ready_data.append(new_sent)
     corpus_sentences = ready_data
     corpus_labels    = tagged_data
-    print("OOV count: ", oov_count)
+    # print("OOV count: ", oov_count)
     return prep, corpus_sentences, corpus_labels
 
 def gen_train_test(window_size):
@@ -162,13 +166,13 @@ def gen_train_test(window_size):
     test = dict({})
     for typr in ["Train","Test"]:
         for filename in os.listdir(fpath.format(typr)):
-            print(filename)
+            # print(filename)
             prep,sents,labels = prep_feats(os.path.join(fpath.format(typr), filename), window_size)
-            print(prep)
+            # print(prep)
             if typr=="Train":
-                train[prep] = { "sents":sents , "labels":labels}
+                train[prep] = {"sents":sents , "labels":labels}
             else:
-                test[prep] = { "sents":sents , "labels":labels}
+                test[prep] = {"sents":sents , "labels":labels}
     return train,test
 
 

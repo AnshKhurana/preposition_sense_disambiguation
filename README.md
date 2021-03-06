@@ -14,7 +14,7 @@
 
 `python3 main.py --preposition y --model x`
 
-where `x `can be `[svm, knn, mlp]`
+where `x` can be `[svm, knn, mlp]`
 
 ### Running Model 'x' with saved hyperparameters for all the prepositions
 

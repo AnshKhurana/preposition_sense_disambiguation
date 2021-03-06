@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay, accuracy_score, f1_score
 from data import prep_feats, gen_train_test
 
 preposition_list = ['about', 'above', 'across', 'after', 'against', 'along', 'among', 'around', 'as', 'at', 'before', 'behind', 'beneath', 'beside', 'between', 'by', 'down', 'during', 'for', 'from', 'in', 'inside', 'into', 'like', 'of', 'off', 'on', 'onto', 'over', 'round', 'through', 'to', 'towards', 'with']
@@ -62,6 +62,7 @@ def process_preposition_data(train, test, feature_comb='concat', beta=None, gamm
 
     return X_train, X_test, np.squeeze(Y_train), train_sentences, test_sentences
 
+
 def run_preposition(preposition, train, test, feature_comb, output_dir,
                     beta=1, gamma=1, model='svm', svm_regularizer=1.0, knn_neighbours=8, hidden_neurons=20):
     X_trainset, X_test, Y_trainset, train_sentences, test_sentences = process_preposition_data(train, test, feature_comb, beta, gamma)
@@ -101,8 +102,10 @@ def run_preposition(preposition, train, test, feature_comb, output_dir,
 
     print('\tTraining Accuracy')
     print('\t', accuracy_score(y_train, y_pred_train))
+    # print(classification_report(y_train, y_pred_train))
     print('\tValidation Accuracy')
     print('\t', accuracy_score(y_val, y_pred_val))
+    # print(classification_report(y_val, y_pred_val))
 
     # save test outputs
 
@@ -112,7 +115,8 @@ def run_preposition(preposition, train, test, feature_comb, output_dir,
         for sent, label in zip(test_sentences, y_pred_test):
             f.write('%s | %s\n' % (sent, label))
 
-    return accuracy_score(y_train, y_pred_train), len(y_train), accuracy_score(y_val, y_pred_val), len(y_val)
+    return f1_score(y_train, y_pred_train, average='weighted'), accuracy_score(y_train, y_pred_train), len(y_train), \
+        f1_score(y_val, y_pred_val, average='weighted'), accuracy_score(y_val, y_pred_val), len(y_val)
 
 
 def run_all_preps(trainset, testset, feature_comb, output_dir,
@@ -122,25 +126,35 @@ def run_all_preps(trainset, testset, feature_comb, output_dir,
     y_val_len_list = []
     y_train_acc_list = []
     y_train_len_list = []
+    y_train_f1_list = []
+    y_val_f1_list = []
+
     for preposition in preposition_list:
         prep_train = trainset[preposition]
         prep_test = testset[preposition]
     
-        y_acc_train, y_len_train, y_acc_val, y_len_val = run_preposition(preposition, prep_train, prep_test, feature_comb,
+        y_f1_train, y_acc_train, y_len_train, y_f1_val, y_acc_val, y_len_val = run_preposition(preposition, prep_train, prep_test, feature_comb,
             output_dir, beta, gamma, model, svm_regularizer, knn_neighbours, hidden_neurons)
         
         y_val_acc_list.append(y_acc_val)
+        y_val_f1_list.append(y_f1_val)
         y_val_len_list.append(y_len_val)
         y_train_acc_list.append(y_acc_train)
+        y_train_f1_list.append(y_f1_train)
         y_train_len_list.append(y_acc_train)
 
     y_val_acc_list = np.array(y_val_acc_list)
     y_val_len_list = np.array(y_val_len_list)
     y_train_acc_list = np.array(y_train_acc_list)
     y_train_len_list = np.array(y_train_len_list)
+    y_train_f1_list = np.array(y_train_f1_list)
+    y_val_f1_list = np.array(y_val_f1_list)
 
     print('Overall validation accuracy: ', np.sum(y_val_acc_list*y_val_len_list) / np.sum(y_val_len_list))
     print('Overall training accuracy: ', np.sum(y_train_len_list*y_train_acc_list) / np.sum(y_train_len_list))
+    print('Overall training F1: ', np.sum(y_train_len_list*y_train_f1_list) / np.sum(y_train_len_list))
+    print('Overall validation F1: ', np.sum(y_val_len_list*y_val_f1_list) / np.sum(y_val_len_list))
+
 
 if __name__ == '__main__':
     args = parser.parse_args()

@@ -56,9 +56,9 @@ def process_preposition_data(train, test, feature_comb='concat', beta=None, gamm
     else:
         raise NotImplementedError('Feature combination %s is not implemented.' % feature_comb)
 
-    print('X_train: ', X_train.shape)
-    print('X_test: ', X_test.shape)
-    print('Y_train: ', Y_train.shape)
+    # print('X_train: ', X_train.shape)
+    # print('X_test: ', X_test.shape)
+    # print('Y_train: ', Y_train.shape)
 
     return X_train, X_test, np.squeeze(Y_train), train_sentences, test_sentences
 
@@ -70,31 +70,39 @@ def run_preposition(preposition, train, test, feature_comb, output_dir,
 
     # Split into train and validation
     X_train, X_val, y_train, y_val = train_test_split(X_trainset, Y_trainset, shuffle=True, random_state=42, test_size=0.20)
-
-    if model == 'svm':
-        # default parameters
-        classifier = SVC(C=svm_regularizer)
-    elif model == 'knn':
-        classifier = KNeighborsClassifier(n_neighbors=knn_neighbours)
-    elif model == 'mlp':
-        classifier = MLPClassifier(hidden_layer_sizes=(hidden_neurons))
+    if len(np.unique(Y_trainset)) <= 1:
+        elem = np.unique(Y_trainset)[0]
+        num_train = len(y_train)
+        num_test = len(X_test)
+        num_val = len(y_val)
+        y_pred_train = np.array([elem]*num_train)
+        y_pred_test = np.array([elem]*num_test)
+        y_pred_val = np.array([elem]*num_val)
     else:
-        raise NotImplementedError('Algorithm %s has not been implemented.')
+        if model == 'svm':
+            # default parameters
+            classifier = SVC(C=svm_regularizer, max_iter=1000)
+        elif model == 'knn':
+            classifier = KNeighborsClassifier(n_neighbors=knn_neighbours)
+        elif model == 'mlp':
+            classifier = MLPClassifier(hidden_layer_sizes=(hidden_neurons), max_iter=500)
+        else:
+            raise NotImplementedError('Algorithm %s has not been implemented.')
 
-    classifier.fit(X_train, y_train)
+        classifier.fit(X_train, y_train)
 
-    # Evaluate on validation data 
-    y_pred_train = classifier.predict(X_train)
-    y_pred_val = classifier.predict(X_val)
-    y_pred_test = classifier.predict(X_test)
+        # Evaluate on validation data 
+        y_pred_train = classifier.predict(X_train)
+        y_pred_val = classifier.predict(X_val)
+        y_pred_test = classifier.predict(X_test)
 
-    print('Test labels')
-    print(y_pred_test)
+        # print('Test labels')
+        # print(y_pred_test)
 
-    print('Training Accuracy')
-    print(classification_report(y_train, y_pred_train))
-    print('Validation Accuracy')
-    print(classification_report(y_val, y_pred_val))
+    print('\tTraining Accuracy')
+    print('\t', accuracy_score(y_train, y_pred_train))
+    print('\tValidation Accuracy')
+    print('\t', accuracy_score(y_val, y_pred_val))
 
     # save test outputs
 
@@ -104,18 +112,35 @@ def run_preposition(preposition, train, test, feature_comb, output_dir,
         for sent, label in zip(test_sentences, y_pred_test):
             f.write('%s | %s\n' % (sent, label))
 
+    return accuracy_score(y_train, y_pred_train), len(y_train), accuracy_score(y_val, y_pred_val), len(y_val)
+
+
 def run_all_preps(trainset, testset, feature_comb, output_dir,
                     beta=1, gamma=1, model='svm', svm_regularizer=1.0, knn_neighbours=8, hidden_neurons=20):
     
+    y_val_acc_list = []
+    y_val_len_list = []
+    y_train_acc_list = []
+    y_train_len_list = []
     for preposition in preposition_list:
         prep_train = trainset[preposition]
         prep_test = testset[preposition]
-        try:
-            run_preposition(preposition, prep_train, prep_test, feature_comb,
+    
+        y_acc_train, y_len_train, y_acc_val, y_len_val = run_preposition(preposition, prep_train, prep_test, feature_comb,
             output_dir, beta, gamma, model, svm_regularizer, knn_neighbours, hidden_neurons)
-        except:
-            continue
+        
+        y_val_acc_list.append(y_acc_val)
+        y_val_len_list.append(y_len_val)
+        y_train_acc_list.append(y_acc_train)
+        y_train_len_list.append(y_acc_train)
 
+    y_val_acc_list = np.array(y_val_acc_list)
+    y_val_len_list = np.array(y_val_len_list)
+    y_train_acc_list = np.array(y_train_acc_list)
+    y_train_len_list = np.array(y_train_len_list)
+
+    print('Overall validation accuracy: ', np.sum(y_val_acc_list*y_val_len_list) / np.sum(y_val_len_list))
+    print('Overall training accuracy: ', np.sum(y_train_len_list*y_train_acc_list) / np.sum(y_train_len_list))
 
 if __name__ == '__main__':
     args = parser.parse_args()

@@ -12,4 +12,14 @@
 
 ### Running Model 'x' for Preposition 'y'
 
-`python3 main.py --preposition for --model svm`
+`python3 main.py --preposition y --model x`
+
+where `x `can be `[svm, knn, mlp]`
+
+### Running Model 'x' with saved hyperparameters for all the prepositions
+
+```
+bash run_mlp.sh
+bash run_knn.sh
+bash run_svm.sh
+```

@@ -1,0 +1,1 @@
+python3 main.py --model svm --preposition run_all  --save_test_outs svm_output --window_size 3

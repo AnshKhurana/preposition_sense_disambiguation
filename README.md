@@ -6,6 +6,28 @@
 
 `pip install -r requirements.txt`
 
+### Directory structure
+
+```
+170050011_170050035_170020016_assignment1
+├── README.md
+├── data.py
+├── knn_output
+├── main.py
+├── mlp_output
+├── report.pdf
+├── requirements.txt
+├── run_knn.sh
+├── run_mlp.sh
+├── run_svm.sh
+├── setup.sh
+├── svm_output
+├── test_out
+└── validate_format.py
+
+4 directories, 10 files
+```
+
 ### Downloading GloVe
 
 `bash setup.sh`

@@ -69,7 +69,7 @@ def run_preposition(preposition, train, test, feature_comb, output_dir,
     print('Training model for preposition: %s' % preposition)
 
     # Split into train and validation
-    X_train, X_val, y_train, y_val = train_test_split(X_trainset, Y_trainset, shuffle=True, random_state=42, test_size=0.10)
+    X_train, X_val, y_train, y_val = train_test_split(X_trainset, Y_trainset, shuffle=True, random_state=42, test_size=0.20)
 
     if model == 'svm':
         # default parameters

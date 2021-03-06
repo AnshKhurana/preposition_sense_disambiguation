@@ -115,6 +115,7 @@ def prep_feats(file_path,window_size):
         sent_labels    = [sent[-1]]
         for w in sent[0]:
             word_data = dict({})
+            word_data["orig"] = w
             word_data["word"]    = w.lower()
             word_data["capital"] = any(x.upper for x in w)  
                 # if w_t[0].lower() not in embedding_dict.keys():
@@ -153,7 +154,7 @@ def prep_feats(file_path,window_size):
         pca = PCA(n_components=1)
         principalComponents = pca.fit_transform(V_matrix)
         new_sent["vi"]= principalComponents[:, 0]
-        new_sent['sentence'] = " ".join([w['word'] for w in sent])
+        new_sent['sentence'] = " ".join([w['orig'] for w in sent])
         ready_data.append(new_sent)
     corpus_sentences = ready_data
     corpus_labels    = tagged_data

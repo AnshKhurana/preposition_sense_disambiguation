@@ -110,8 +110,11 @@ def run_all_preps(trainset, testset, feature_comb, output_dir,
     for preposition in preposition_list:
         prep_train = trainset[preposition]
         prep_test = testset[preposition]
-        run_preposition(preposition, prep_train, prep_test, feature_comb,
-        output_dir, beta, gamma, model, svm_regularizer, knn_neighbours, hidden_neurons)
+        try:
+            run_preposition(preposition, prep_train, prep_test, feature_comb,
+            output_dir, beta, gamma, model, svm_regularizer, knn_neighbours, hidden_neurons)
+        except:
+            continue
 
 
 if __name__ == '__main__':
